@@ -5,8 +5,9 @@ import { prisma } from '@/lib/prisma'
 async function sendEmailNotification(ticketId: string, companyId: string) {
   // BUG 3 INTENCIONAL: Esta promesa nunca se resuelve
   // El hilo se queda bloqueado esperando.
-  return new Promise((resolve) => {
+  return new Promise<void>((resolve) => {
     console.log(`Enviando notificación urgente para el ticket ${ticketId}...`)
+    resolve()
     // Falta: resolve() o hay un error de lógica
   })
 }

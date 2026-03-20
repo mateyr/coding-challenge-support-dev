@@ -1,33 +1,79 @@
-# Coding Challenge: Soporte TechCorp 🚨
+## 🚀 Cómo ejecutar el proyecto
 
-¡Hola! Gracias por aplicar. Para esta prueba técnica, queremos simular un escenario real de nuestro día a día. No hay requerimientos abstractos, sino un problema real de soporte que debes resolver.
+1. Instalar dependencias:
+```bash
+npm install
+```
 
-Se evaluará tu capacidad para:
-- Entender código existente (Node.js, React/Next.js, Tailwind).
-- Utilizar herramientas de IA (Claude, Cursor, Gemini, etc.) para acelerar tu diagnóstico y resolución.
-- Priorizar tareas críticas bajo presión.
-- Mantener el orden y las buenas prácticas al corregir bugs.
+2. Crear archivo .env:
+```bash
+echo DATABASE_URL="file:./dev.db" > .env
+```
 
-## El Contexto
+3. Generar cliente de prisma:
+```bash
+npx prisma generate
+```
 
-Acabas de iniciar tu día y recibes el siguiente mensaje por Slack de José (Project Manager):
+4. Iniciar el servidor:
+```bash
+npm run dev
+```
 
-> **De:** José
-> **Para:** Equipo de Soporte
-> 
-> "Hola chicos, buenos días. Les paso contexto de unos inconvenientes urgentes que tenemos en la plataforma de TechCorp. Austin (del cliente) me indica que no puede ingresar a resolver los tickets desde su celular, el botón de 'Resolver' simplemente no le hace nada. 
->
-> Además, al parecer están teniendo que recargar toda la página para ver cuando un ticket cambia de estado. Es un tema urgente porque las personas de soporte de ellos no pueden gestionar los casos marcados como 'Urgente', dicen que el sistema se queda cargando y nunca termina. Ya estoy creando los tickets en Jira.
-> 
-> Y por último, y esto es lo más crítico: me acaban de confirmar que un usuario pudo ver los tickets de OTRA empresa. Necesitamos revisar qué está interfiriendo ahí con la base de datos o el servicio, no podemos tener esa fuga de datos.
->
-> Me confirman cuando lo tengan listo para coordinar pruebas finales con ellos. Mil gracias."
+## 🔧 Solución de Incidentes
 
-## Tu Misión
+Durante la revisión del proyecto se detectaron comentarios en el código que sugerían posibles causas de los problemas.  
+Aun así, se realizó un análisis completo y se implementaron soluciones asegurando un comportamiento correcto.
 
-1. Clona este repositorio e instala las dependencias (`npm install`).
-2. Levanta la base de datos local poblada de prueba (`npm run db:setup`) y el servidor (`npm run dev`).
-3. Identifica y resuelve los 4 problemas mencionados por José en su mensaje.
-4. Sube tu código a un repositorio público (GitHub/GitLab) y envíanos el enlace.
+---
 
-**Nota:** Tienes total libertad de usar herramientas de IA para apoyarte. Lo que nos importa es cómo analizas el problema, cómo guías a la IA y la calidad de la solución final. ¡Éxitos!
+### 1. Botón "Resolver" no funciona en celular
+
+**Problema:**  
+En dispositivos móviles, el botón quedaba oculto debido a un footer fijo que cubría el contenido.
+
+**Solución:**  
+Se agregó un padding inferior al contenedor principal para evitar que el contenido quede oculto y permitir la interacción con el botón.
+
+---
+
+### 2. No hay actualización en tiempo real de los tickets
+
+**Problema:**  
+Se estaba mutando directamente el estado de React, por lo que la UI no detectaba cambios y no se actualizaba correctamente.
+
+**Solución:**  
+Se corrigió la actualización del estado creando un nuevo arreglo en lugar de modificar el existente, permitiendo que React re-renderice la vista.
+
+---
+
+### 3. Error al resolver tickets urgentes
+
+**Problema:**  
+El endpoint quedaba bloqueado debido a una promesa que no se resolvía correctamente.
+
+**Solución:**  
+Se corrigió la implementación asegurando que la promesa siempre se resuelva y no bloquee el flujo del endpoint.
+
+**Mejora:** Se podría evaluar desacoplar el envío de notificaciones para evitar que afecte la respuesta del endpoint.
+
+---
+
+### 4. Fuga de datos entre empresas
+
+**Problema:**  
+El endpoint obtenía todos los tickets sin filtrar por empresa, permitiendo que un usuario acceda a información de otras compañías.
+
+**Solución:**  
+Se agregó un filtro por `companyId` en la consulta para asegurar que cada usuario solo acceda a los datos de su empresa.
+
+```ts
+const tickets = await prisma.ticket.findMany({
+  where: { companyId: user.companyId },
+  orderBy: { createdAt: 'desc' },
+})
+```
+
+**Mejora:** Se recomienda centralizar el filtro por `companyId` en una capa de acceso a datos o mediante funciones helper que lo apliquen automáticamente en todas las consultas, evitando depender de su inclusión manual.  
+
+En escenarios más avanzados, se puede implementar Row-Level Security (RLS) a nivel de base de datos para garantizar el aislamiento de datos de forma segura.

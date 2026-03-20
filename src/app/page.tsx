@@ -55,11 +55,9 @@ export default function Dashboard() {
         // BUG 2 INTENCIONAL: Mutación de estado de React
         // Se altera el arreglo original en lugar de crear uno nuevo.
         // Esto causa que React no detecte el cambio y no vuelva a renderizar la UI inmediatamente.
-        const ticketIndex = tickets.findIndex((t) => t.id === updatedTicket.id)
-        if (ticketIndex !== -1) {
-          tickets[ticketIndex] = updatedTicket
-          setTickets(tickets) // React no verá esto como un cambio de estado válido
-        }
+        setTickets((prev) =>
+          prev.map((t) => (t.id === updatedTicket.id ? updatedTicket : t)),
+        );
       }
     } catch (error) {
       console.error("Error resolving ticket:", error)
@@ -99,7 +97,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 pb-20">
           {tickets.length === 0 ? (
             <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-100 text-gray-500">
               No hay tickets pendientes. ¡Buen trabajo!

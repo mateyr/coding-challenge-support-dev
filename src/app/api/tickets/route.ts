@@ -8,7 +8,7 @@ export async function GET() {
     // de la base de datos sin filtrar.
     const tickets = await prisma.ticket.findMany({
       orderBy: { createdAt: 'desc' },
-      // Falta: where: { companyId: 'TechCorp' } o usando el usuario de la sesión
+      where: { companyId: 'TechCorp' }
     })
 
     return NextResponse.json(tickets)
